@@ -1863,7 +1863,8 @@ public class Gui extends JFrame {
                         if (Main.APP_VERSION.equals(appVer))
                             Common.showInfo("You already have the latest version of Avandy News");
                         else {
-                            String text = "A new version of the program is available. Download update?";
+                            String text = String.format("Current - %s\nNew - %s\n\n" +
+                                            "Do you want to download the new version?", Main.APP_VERSION, appVer);
 
                             String[] menu = new String[]{"No", "Get"};
                             int option = JOptionPane.showOptionDialog(mainTableScrollPane,
