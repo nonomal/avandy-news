@@ -1846,36 +1846,42 @@ public class Gui extends JFrame {
         checkForUpdates.setAccelerator(ctrlF4);
         checkForUpdates.addActionListener(e -> new Thread(() -> {
             try {
-                String url = null;
+                String windowsUrl = null;
+                String linuxUrl = null;
+                String appVer = null;
+
                 URL oracle = new URL("https://avandy-news.ru/version.txt");
                 BufferedReader in = new BufferedReader(new InputStreamReader(oracle.openStream()));
                 String inputLine;
+
                 while ((inputLine = in.readLine()) != null) {
-
-                    if (OsChecker.isUnix() && inputLine.contains("lin")) {
-                        url = inputLine.substring(4, inputLine.indexOf(";"));
-                    } else if (OsChecker.isWindows() && inputLine.contains("win")) {
-                        url = inputLine.substring(4, inputLine.indexOf(";"));
+                    if (inputLine.startsWith("win=")) {
+                        windowsUrl = inputLine.substring(4, inputLine.indexOf(";"));
+                    } else if (inputLine.startsWith("lin=")) {
+                        linuxUrl = inputLine.substring(4, inputLine.indexOf(";"));
+                    } else if (inputLine.startsWith("ver=")) {
+                        appVer = inputLine.substring(4, inputLine.indexOf(";"));
                     }
+                }
 
-                    if (inputLine.contains("ver")) {
-                        String appVer = inputLine.substring(4, inputLine.indexOf(";"));
-                        if (Main.APP_VERSION.equals(appVer))
-                            Common.showInfo("You already have the latest version of Avandy News");
-                        else {
-                            String text = String.format("Current - %s\nNew - %s\n\n" +
-                                            "Do you want to download the new version?", Main.APP_VERSION, appVer);
+                if (Main.APP_VERSION.equals(appVer)) {
+                    Common.showInfo("You already have the latest version of Avandy News");
+                } else if (appVer != null) {
+                    String text = String.format("Current - %s\nNew - %s\n\n" +
+                            "Do you want to download the new version?", Main.APP_VERSION, appVer);
 
-                            String[] menu = new String[]{"No", "Get"};
-                            int option = JOptionPane.showOptionDialog(mainTableScrollPane,
-                                    text, "New version of App", JOptionPane.YES_NO_CANCEL_OPTION,
-                                    JOptionPane.PLAIN_MESSAGE, Icons.CHECK_FOR_UPDATES_ICON, menu, menu[1]);
-                            if (option == 1) {
-                                assert url != null;
-                                if (!url.isEmpty()) {
-                                    openPage(url);
-                                }
-                            }
+                    String[] menu = new String[]{"No", "Get"};
+                    int option = JOptionPane.showOptionDialog(mainTableScrollPane,
+                            text, "New version of App", JOptionPane.YES_NO_CANCEL_OPTION,
+                            JOptionPane.PLAIN_MESSAGE, Icons.CHECK_FOR_UPDATES_ICON, menu, menu[1]);
+
+                    if (option == 1) {
+                        String url = OsChecker.isWindows() ? windowsUrl : linuxUrl;
+
+                        if (url != null && !url.isEmpty()) {
+                            openPage(url);
+                        } else {
+                            Common.showAlert("Download link not available for your OS");
                         }
                     }
                 }
